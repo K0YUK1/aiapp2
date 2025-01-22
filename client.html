@@ -6,31 +6,146 @@
     <!-- ビューポートの設定：モバイルデバイスでの表示を最適化 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>シンプルTODO</title>
+
     <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                background-color: #f9f9f9;
+                color: #333;
+                padding: 0;
+            }
+
+            h1 {
+                text-align: center;
+                color: #ff69b4; /* ピンク色 */
+                margin-top: 20px;
+            }
+
+        /* フォーム部分のスタイル */
+            .todo-form {
+                background-color: #ffffff;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                margin: 20px auto;
+                padding: 20px;
+                width: 300px;
+            }
+
+            .todo-form input[type="text"],
+            .todo-form input[type="date"],
+            .todo-form input[type="time"] {
+                width: 100%;
+                padding: 10px;
+                margin: 10px 0;
+                border: 2px solid #ff69b4;
+                border-radius: 8px;
+                font-size: 14px;
+                box-sizing: border-box;
+            }
+
+            .todo-form button {
+                background-color: #ff69b4;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 16px;
+                width: 100%;
+                transition: background-color 0.3s;
+            }
+
+            .todo-form button:hover {
+                background-color: #ff1493; /* 濃いピンク色 */
+            }
+
+        /* TODOリストのスタイル */
+            #todoList {
+                max-width: 400px;
+                margin: 20px auto;
+                padding: 0;
+                list-style-type: none;
+            }
+
+            .todo-item {
+                background-color: #ffffff;
+                padding: 15px;
+                margin-bottom: 10px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .todo-item span {
+                font-size: 16px;
+                color: #333;
+            }
+
+            .todo-item span.completed {
+                text-decoration: line-through;
+                color: gray;
+            }
+
+            .todo-item button {
+                background-color: #ff6347; /* トマト色 */
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+
+            .todo-item button:hover {
+                background-color: #ff4500; /* 濃いトマト色 */
+            }
+
+            .todo-item input[type="checkbox"] {
+                transform: scale(1.2);
+                margin-right: 10px;
+            }
+
         /* フォームの上下に余白を追加 */
-        .todo-form {
-            margin: 1rem 0;
-        }
+            .todo-form {
+                margin: 1rem 0;
+            }
 
         /* 完了したTODOのスタイル：取り消し線と薄い色 */
-        .completed {
-            text-decoration: line-through;
-            color: gray;
-        }
+            .completed {
+                text-decoration: line-through;
+                color: gray;
+            }
     </style>
 </head>
 
 <body>
-    <h1>TODOリスト</h1>
-
+    <h1>リスト</h1>
     <!-- TODOを追加するためのフォーム -->
     <form id="todoForm" class="todo-form">
-        <input type="text" id="todoInput" placeholder="新しいTODOを入力..." required>
+        <input type="text" id="todoInput" placeholder="番組名を入力" required>
+        <label for="date">日付:</label>
+        <input type="date" id="date" name="date" required>
+        <label for="time">時間:</label>
+        <input type="time" id="time" name="time" required>
+        <br><br>
         <button type="submit">追加</button>
     </form>
 
     <!-- TODOリストを表示する場所 -->
-    <ul id="todoList"></ul>
+    <table id="todoList">
+        <thead>
+            <tr>
+                <th>番組名</th>
+                <th>日付</th>
+                <th>時間</th>
+                <th>完了</th>
+                <th>アクション</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
     <script>
         // APIサーバーのベースURL
@@ -60,13 +175,13 @@
          */
         function renderTodo(todo) {
             return `
-                <li>
+                <div>
                     <input type="checkbox" 
                            ${todo.completed ? 'checked' : ''} 
                            onchange="toggleTodo(${todo.id}, this.checked)">
-                    <span class="${todo.completed ? 'completed' : ''}">${todo.title}</span>
+                    <span class="${todo.completed ? 'completed' : ''}">${todo.title} - ${todo.date} ${todo.time}</span>
                     <button onclick="deleteTodo(${todo.id})">削除</button>
-                </li>
+                </div>
             `;
         }
 
@@ -87,12 +202,12 @@
          * 新しいTODOを追加
          * @param {string} title - 新しいTODOのタイトル
          */
-        async function addTodo(title) {
+        async function addTodo(title, date, time) {
             // POSTリクエストでTODOを追加
             await api(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, completed: false })
+                body: JSON.stringify({ title, date, time, completed: false })
             });
             // リストを再読み込みして表示を更新
             loadTodos();
@@ -139,11 +254,15 @@
                 // フォームのデフォルトの送信動作を防止
                 e.preventDefault();
                 // 入力されたテキストを取得
-                const input = document.getElementById('todoInput');
-                const title = input.value.trim();
+                const title = document.getElementById('todoInput').value.trim();
+                const date = document.getElementById('date').value;
+                const time = document.getElementById('time').value;
                 // テキストが入力されている場合のみTODOを追加
-                if (title) {
-                    addTodo(title);
+                if (title && date && time) {
+                    addTodo(title, date, time);
+                    document.getElementById('todoInput').value = '';
+                    document.getElementById('date').value = '';
+                    document.getElementById('time').value = '';
                     // 入力フィールドをクリア
                     input.value = '';
                 }

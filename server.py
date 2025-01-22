@@ -36,6 +36,8 @@ def init_db():
             CREATE TABLE IF NOT EXISTS todos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
+                date DATE NOT NULL,
+                time TIME NOT NULL,
                 completed BOOLEAN DEFAULT FALSE
             )
         """
@@ -48,7 +50,9 @@ init_db()
 
 # リクエストボディのデータ構造を定義するクラス
 class Todo(BaseModel):
-    title: str  # TODOのタイトル（必須）
+    title: str
+    date: str
+    time: str  # TODOのタイトル（必須）
     completed: Optional[bool] = False  # 完了状態（省略可能、デフォルトは未完了）
 
 
@@ -67,14 +71,16 @@ def read_root():
 # 新規TODOを作成するエンドポイント
 @app.post("/todos", response_model=TodoResponse)
 def create_todo(todo: Todo):
+
+    print(todo.model_dump())
     with sqlite3.connect("todos.db") as conn:
         cursor = conn.execute(
             # SQLインジェクション対策のためパラメータ化したSQL文を使用
-            "INSERT INTO todos (title, completed) VALUES (?, ?)",
-            (todo.title, todo.completed),
+            "INSERT INTO todos (title, completed, date, time) VALUES (?, ?, ?, ?)",
+            (todo.title, todo.completed, todo.date, todo.time),
         )
         todo_id = cursor.lastrowid  # 新しく作成されたTODOのIDを取得
-        return {"id": todo_id, "title": todo.title, "completed": todo.completed}
+        return {"id": todo_id, "title": todo.title, "date":todo.date, "time":todo.time, "completed": todo.completed}
 
 
 # 全てのTODOを取得するエンドポイント
@@ -83,7 +89,13 @@ def get_todos():
     with sqlite3.connect("todos.db") as conn:
         todos = conn.execute("SELECT * FROM todos").fetchall()  # 全てのTODOを取得
         # データベースから取得したタプルをJSON形式に変換して返す
-        return [{"id": t[0], "title": t[1], "completed": bool(t[2])} for t in todos]
+        return [{
+            "id": t[0], 
+            "title": t[1], 
+            "date": t[2], 
+            "time": t[3], 
+            "completed": bool(t[4])
+        } for t in todos]
 
 
 # 指定されたIDのTODOを取得するエンドポイント
