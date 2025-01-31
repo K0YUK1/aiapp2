@@ -3,9 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <!-- ビューポートの設定：モバイルデバイスでの表示を最適化 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>シンプルTODO</title>
+    <title>出演番組リスト</title>
 
     <style>
             body {
@@ -13,15 +12,19 @@
                 background-color: #f9f9f9;
                 color: #333;
                 padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                flex-direction: column;
             }
 
             h1 {
                 text-align: center;
-                color: #ff69b4; /* ピンク色 */
+                color: #ff69b4;
                 margin-top: 20px;
             }
 
-        /* フォーム部分のスタイル */
             .todo-form {
                 background-color: #ffffff;
                 border-radius: 10px;
@@ -56,7 +59,7 @@
             }
 
             .todo-form button:hover {
-                background-color: #ff1493; /* 濃いピンク色 */
+                background-color: #ff1493;
             }
 
         /* TODOリストのスタイル */
@@ -89,7 +92,7 @@
             }
 
             .todo-item button {
-                background-color: #ff6347; /* トマト色 */
+                background-color: #ff69b4;
                 color: white;
                 border: none;
                 padding: 8px 12px;
@@ -99,7 +102,7 @@
             }
 
             .todo-item button:hover {
-                background-color: #ff4500; /* 濃いトマト色 */
+                background-color: #ff1493;
             }
 
             .todo-item input[type="checkbox"] {
@@ -107,12 +110,10 @@
                 margin-right: 10px;
             }
 
-        /* フォームの上下に余白を追加 */
             .todo-form {
                 margin: 1rem 0;
             }
 
-        /* 完了したTODOのスタイル：取り消し線と薄い色 */
             .completed {
                 text-decoration: line-through;
                 color: gray;
@@ -121,7 +122,7 @@
 </head>
 
 <body>
-    <h1>リスト</h1>
+    <h1>出演番組リスト</h1>
     <!-- TODOを追加するためのフォーム -->
     <form id="todoForm" class="todo-form">
         <input type="text" id="todoInput" placeholder="番組名を入力" required>
